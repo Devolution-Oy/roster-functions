@@ -33,6 +33,16 @@ exports.getUser = functions.https.onCall((data, context) => {
       'Given data does not contain data.uid');
   }
 
-  console.log(data);
-  return admin.firestore().collection('users').doc(data.text).get();
+  const user = admin.firestore().collection('users').doc(data.uid).get();
+  console.log(user);
+  const res = {
+    user: data.uid,
+    data: user
+  };
+  console.log('Final res' + res);
+
+  return new Promise((resolve) => {
+    resolve(res);
+  });
+  
 });
