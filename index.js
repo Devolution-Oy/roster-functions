@@ -27,6 +27,40 @@ exports.deleteUser = functions.auth.user().onDelete(user => {
   return doc.delete();
 });
 
+async function getUserData(uid) {
+
+  const getUserInfo = uid => {
+    return admin.firestore().collection('users').doc(uid).get();
+  };
+
+  const getBalance = githubUser => {
+    return admin.firestore().collection('records').where('githubUser', '==', githubUser)
+      .get().then(query => {
+        var balance = 0;
+        query.forEach(record => {
+          balance = balance + record.data().amount;
+        });
+        return new Promise(resolve => {
+          resolve(balance);
+        });
+      });
+  };
+  const user = await getUserInfo(uid);
+  const balance = await getBalance(user.data().githubUser);
+
+  const userData = {
+    githubUser: user.data().githubUser,
+    role: user.data().role,
+    displayName: user.data().displayName,
+    photo: user.data().photo,
+    email: user.data().email,
+    balance: balance
+  };
+  return new Promise((resolve) => {
+    resolve(userData);
+  });
+}
+
 exports.getUser = functions.https.onCall((data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated');
@@ -37,11 +71,7 @@ exports.getUser = functions.https.onCall((data, context) => {
       'Given data does not contain data.uid');
   }
 
-  return admin.firestore().collection('users').doc(data.uid).get().then(doc => {
-    return new Promise((resolve) => {
-      resolve(doc.data());
-    });
-  });
+  return getUserData(data.uid);
 });
 
 const validatePostBalance = data => {
