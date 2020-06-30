@@ -1,11 +1,10 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const crypto = require('crypto-js');
+const handlePostRecord = require('./postRecord');
 
 admin.initializeApp();
 
 // TODO: Calculate balance when getUser is called
-// TODO: Add APP id check on a postRecord
 
 // HTTP Callable: Create a new user record into firestore
 exports.addUser = functions.https.onCall((data, context) => {
@@ -74,31 +73,6 @@ exports.getUser = functions.https.onCall((data, context) => {
   return getUserData(data.uid);
 });
 
-const validatePostBalance = data => {
-  if (!data.githubUser 
-    || !data.project
-    || !data.amount
-    || !data.issue
-    || !data.timestamp)
-    return false;
-
-  return true;
-};
-
 exports.postRecord = functions.https.onRequest((req, res) => {
-  if (req.method !== 'POST') {
-    res.status(400).send('Invalid request');
-    return;
-  }
-
-  let data = req.body;
-
-  if (!validatePostBalance(data)) {
-    res.status(400).send('Invalid request');
-    return;
-  }
-
-  const hash = crypto.MD5(data.githubUser + data.project + data.issue);
-  admin.firestore().collection('records').doc(hash.toString()).set(data);
-  res.status(200).send('OK (' + hash.toString() + ')');
+  return handlePostRecord(req,res, admin);
 });

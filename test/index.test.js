@@ -1,4 +1,3 @@
-
 const test = require('firebase-functions-test')();
 const admin = require('firebase-admin');
 const sinon = require('sinon');
