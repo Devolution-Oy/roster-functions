@@ -7,13 +7,13 @@ const sandbox = sinon.createSandbox();
 
 
 describe('REST call validation', async () => {
-  const stubSignInWithCustomToken = sandbox.stub().callsFake(token => {
+  const stubVerifyIdToken = sandbox.stub().callsFake(token => {
     if (!token) throw new Error('No token');
 
     return true;
   });
   const stubAuth = sandbox.stub().callsFake(() => {
-    return { signInWithCustomToken: stubSignInWithCustomToken };
+    return { verifyIdToken: stubVerifyIdToken };
   });
 
   const stubAdmin = {

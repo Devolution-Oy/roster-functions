@@ -2,7 +2,7 @@ async function validate(req, validateMethod, validateFunc, admin) {
   if (!req.headers.authorization) {
     console.error('No Firebase authorization token was passed in the request header.',
       'Make sure you authorize your request by providing the following HTTP header:',
-      'Authorization: <Firebase custom token>');
+      'Authorization: <Firebase id token>');
     return new Promise(resolve => {
       resolve({ code: 403, message: 'Unauthorized' });
     });
@@ -19,7 +19,7 @@ async function validate(req, validateMethod, validateFunc, admin) {
   }
 
   try {
-    await admin.auth().signInWithCustomToken(req.headers.authorization);
+    await admin.auth().verifyIdToken(req.headers.authorization);
     console.log('ID Token correctly decoded');
     return new Promise(resolve => {
       resolve({ code: 200, message: 'OK' });
