@@ -52,11 +52,11 @@ describe('Post Record tests', () => {
     .callsFake((req, _validateMethod, _validateFunc, _admin) => {
       if (req.body.project) {
         return new Promise(resolve => {
-          resolve({ code: 200, message: 'OK', user: 'tester' });
+          resolve({ code: 200, message: 'OK' });
         });
       } else {
         return new Promise(resolve => {
-          resolve({ code: 400, message: 'Some information missing', user: '' });
+          resolve({ code: 400, message: 'Some information missing' });
         });
       }
     });
@@ -85,7 +85,7 @@ describe('Post Record tests', () => {
         },
         method: 'POST',
         headers: {
-          authorization: 'Bearer 12345kjhtg'
+          authorization: '12345kjhtg'
         }
       };
 
@@ -106,7 +106,7 @@ describe('Post Record tests', () => {
       },
       method: 'POST',
       headers: {
-        authorization: 'Bearer 12345kjhtg'
+        authorization: '12345kjhtg'
       }
     };
 

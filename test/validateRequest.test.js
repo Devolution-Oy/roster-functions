@@ -7,13 +7,13 @@ const sandbox = sinon.createSandbox();
 
 
 describe('REST call validation', async () => {
-  const stubVerifyIdToken = sandbox.stub().callsFake(token => {
-    if (!token) return 'No token';
+  const stubSignInWithCustomToken = sandbox.stub().callsFake(token => {
+    if (!token) throw new Error('No token');
 
-    return 'tester';
+    return true;
   });
   const stubAuth = sandbox.stub().callsFake(() => {
-    return { verifyIdToken: stubVerifyIdToken };
+    return { signInWithCustomToken: stubSignInWithCustomToken };
   });
 
   const stubAdmin = {
@@ -47,7 +47,7 @@ describe('REST call validation', async () => {
       },
       method: 'POST',
       headers: {
-        authorization: 'Bearer 12345kjhtg'
+        authorization: '12345kjhtg'
       }
     };
 
@@ -58,7 +58,6 @@ describe('REST call validation', async () => {
       stubAdmin);
     res.code.should.equal(200);
     res.message.should.equal('OK');
-    res.user.should.equal('tester');
   });
 
   it('Error is returned if no authorization token is provided', async () => {
@@ -72,8 +71,7 @@ describe('REST call validation', async () => {
       },
       method: 'POST',
       headers: {
-      },
-      user: ''
+      }
     };
 
     let res = await validateRequest.validate(
@@ -83,7 +81,6 @@ describe('REST call validation', async () => {
       stubAdmin);
     res.code.should.equal(403);
     res.message.should.equal('Unauthorized');
-    res.user.should.equal('');
   });
 
   it('Error is returned when validate function returns false', async () => {
@@ -97,9 +94,8 @@ describe('REST call validation', async () => {
       },
       method: 'POST',
       headers: {
-        authorization: 'Bearer 12345kjhtg'
-      },
-      user: ''
+        authorization: '12345kjhtg'
+      }
     };
 
     let res = await validateRequest.validate(
@@ -109,7 +105,6 @@ describe('REST call validation', async () => {
       stubAdmin);
     res.code.should.equal(400);
     res.message.should.equal('Invalid request');
-    res.user.should.equal('');
   });
 
   it('Error is returned when request method is not expected', async () => {
@@ -123,9 +118,8 @@ describe('REST call validation', async () => {
       },
       method: 'POST',
       headers: {
-        authorization: 'Bearer 12345kjhtg'
-      },
-      user: ''
+        authorization: '12345kjhtg'
+      }
     };
 
     let res = await validateRequest.validate(
@@ -135,21 +129,5 @@ describe('REST call validation', async () => {
       stubAdmin);
     res.code.should.equal(400);
     res.message.should.equal('Invalid method');
-    res.user.should.equal('');
-  });
-
-});
-
-describe('extractToken method', () => {
-  it('Returns token part of the Bearer token', () => {
-    const token = validateRequest.extractToken('Bearer 12368765');
-    token.should.equal('12368765');
-  });
-
-  it('Return empty string for invalid Bearer token', () => {
-    const tokenNotBearer = validateRequest.extractToken('Beer 12368765');
-    tokenNotBearer.should.equal('');
-    const tokenNotExist = validateRequest.extractToken('');
-    tokenNotExist.should.equal('');
   });
 });
