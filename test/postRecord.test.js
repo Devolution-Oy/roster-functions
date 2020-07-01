@@ -1,7 +1,6 @@
 const sinon = require('sinon');
 const chai = require('chai');
 chai.should();
-const validateRequest = require('../validateRequest');
 const handlePostRecord = require('../postRecord');
 
 const sandbox = sinon.createSandbox();
@@ -47,22 +46,8 @@ describe('Post Record tests', () => {
     status: statusStub,
     message: message,
   };
-
-  const validateStub = sandbox.stub(validateRequest, 'validate')
-    .callsFake((req, _validateMethod, _validateFunc, _admin) => {
-      if (req.body.project) {
-        return new Promise(resolve => {
-          resolve({ code: 200, message: 'OK' });
-        });
-      } else {
-        return new Promise(resolve => {
-          resolve({ code: 400, message: 'Some information missing' });
-        });
-      }
-    });
   
   beforeEach(() => {
-    validateStub.resetHistory();
     set.resetHistory();
     statusStub.resetHistory();
     sendStub.resetHistory();
@@ -85,43 +70,72 @@ describe('Post Record tests', () => {
         },
         method: 'POST',
         headers: {
-          authorization: '12345kjhtg'
+          authorization: process.env.TASKER_APP_ID
         }
       };
 
       await handlePostRecord(validReq, res, admin);
-      validateStub.called.should.be.ok;
       statusStub.calledWith(200).should.be.ok;
     });
   });
 
   describe('Validation failures are handled', () => {
 
-    let invalidReq = {
-      body: {
-        githubUser: 'tester',
-        amount: 60,
-        issue: 1,
-        timestamp: '2020-06-12T12:45:00Z'
-      },
-      method: 'POST',
-      headers: {
-        authorization: '12345kjhtg'
-      }
-    };
+    it('If data field is missing, Bad Request message is sent', async () => {
+      let invalidReq = {
+        body: {
+          githubUser: 'tester',
+          amount: 60,
+          issue: 1,
+          timestamp: '2020-06-12T12:45:00Z'
+        },
+        method: 'POST',
+        headers: {
+          authorization: process.env.TASKER_APP_ID
+        }
+      };
 
-    it('If validation returns NOK error message from validation is given', async () => {
       await handlePostRecord(invalidReq, res, admin);
-      validateStub.called.should.be.ok;
       statusStub.calledWith(400).should.be.ok;
-      sendStub.calledWith('Some information missing').should.be.ok;
+      sendStub.calledWith('Bad Request').should.be.ok;
     });
 
-    it('If validation returns NOK error message, return false', async () => {
-      let ret = await handlePostRecord(invalidReq, res, admin);
-      ret.should.be.false;
+    it('If method field is incorrect, "Invalid method" message is sent', async () => {
+      let invalidReq = {
+        body: {
+          githubUser: 'tester',
+          project: 'test project',
+          amount: 60,
+          issue: 1,
+          timestamp: '2020-06-12T12:45:00Z'
+        },
+        method: 'GET',
+        headers: {
+          authorization: process.env.TASKER_APP_ID
+        }
+      };
+      await handlePostRecord(invalidReq, res, admin);
       statusStub.calledWith(400).should.be.ok;
-      set.called.should.not.be.ok;
+      sendStub.calledWith('Invalid method').should.be.ok;
     });
+
+    it('If authorization is not given "Unauthorized" message is sent', async () => {
+      let invalidReq = {
+        body: {
+          githubUser: 'tester',
+          project: 'test project',
+          amount: 60,
+          issue: 1,
+          timestamp: '2020-06-12T12:45:00Z'
+        },
+        method: 'POST',
+        headers: {
+        }
+      };
+      await handlePostRecord(invalidReq, res, admin);
+      statusStub.calledWith(403).should.be.ok;
+      sendStub.calledWith('Unauthorized').should.be.ok;
+    });
+
   });
 });
