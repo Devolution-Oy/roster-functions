@@ -1,11 +1,16 @@
 const crypto = require('crypto-js');
+const functions = require('firebase-functions');
+
 
 /*
   Validate new record post
 */
 const validatePostBalance = req => {
+  const tasker_app_id = functions.config().tasker_app_id.value;
 
-  if (!req.headers.authorization || req.headers.authorization !== process.env.TASKER_APP_ID) {
+  if (!req.headers.authorization || req.headers.authorization !== tasker_app_id) {
+    console.log('Received header ' + req.headers.authorization);
+    console.log(tasker_app_id);
     console.error('No authorization token was passed in the request header or the token is not correct.',
       'Make sure you authorize your request by providing the following HTTP header:',
       'Authorization: <TASKER_APP_ID>');

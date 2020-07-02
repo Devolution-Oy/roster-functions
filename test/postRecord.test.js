@@ -2,6 +2,8 @@ const sinon = require('sinon');
 const chai = require('chai');
 chai.should();
 const handlePostRecord = require('../postRecord');
+const functions = require('firebase-functions');
+
 
 const sandbox = sinon.createSandbox();
 
@@ -23,6 +25,13 @@ describe('Post Record tests', () => {
       return { collection };
     }
   };
+
+  sandbox.stub(functions, 'config').returns({
+    tasker_app_id: {
+      value: process.env.TASKER_APP_ID
+    }
+  });
+
 
   const sendStub = sandbox.stub().callsFake(message => {
     console.log(message);
