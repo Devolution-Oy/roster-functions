@@ -1,10 +1,9 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const handlePostRecord = require('./postRecord');
+const getBalance = require('./getBalance');
 
 admin.initializeApp();
-
-// TODO: Calculate balance when getUser is called
 
 // HTTP Callable: Create a new user record into firestore
 exports.addUser = functions.https.onCall((data, context) => {
@@ -32,20 +31,7 @@ async function getUserData(uid) {
     return admin.firestore().collection('users').doc(uid).get();
   };
 
-  const getBalance = githubUser => {
-    return admin.firestore().collection('records').where('githubUser', '==', githubUser)
-      .get().then(query => {
-        var balance = 0;
-        query.forEach(record => {
-          balance = balance + record.data().amount;
-        });
-        return new Promise(resolve => {
-          resolve(balance);
-        });
-      });
-  };
   const user = await getUserInfo(uid);
-  const balance = await getBalance(user.data().githubUser);
 
   const userData = {
     githubUser: user.data().githubUser,
@@ -53,7 +39,6 @@ async function getUserData(uid) {
     displayName: user.data().displayName,
     photo: user.data().photo,
     email: user.data().email,
-    balance: balance
   };
   return new Promise((resolve) => {
     resolve(userData);
@@ -71,6 +56,10 @@ exports.getUser = functions.https.onCall((data, context) => {
   }
 
   return getUserData(data.uid);
+});
+
+exports.getUserBalance = functions.https.onCall((data, context) => {
+  return getBalance(data, context);
 });
 
 exports.postRecord = functions.https.onRequest((req, res) => {

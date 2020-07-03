@@ -32,7 +32,6 @@ describe('Post Record tests', () => {
     }
   });
 
-
   const sendStub = sandbox.stub().callsFake(message => {
     console.log(message);
   });
