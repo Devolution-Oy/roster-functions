@@ -39,7 +39,7 @@ module.exports = async(data, context) => {
         };
 
         record.date = formatTime(data.timestamp);
-        record.description = data.project + ' ' + data.issue;
+        record.description = data.project + ' (' + data.issue + '): ' + data.description;
         record.amount = data.amount;
         records.push(record);
       });
