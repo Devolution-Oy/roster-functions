@@ -1,7 +1,6 @@
 const crypto = require('crypto-js');
 const functions = require('firebase-functions');
 
-
 /*
   Validate new record post
 */
@@ -25,7 +24,8 @@ const validatePostBalance = req => {
     || !req.body.project
     || !req.body.amount
     || !req.body.issue
-    || !req.body.timestamp) {
+    || !req.body.timestamp
+    || !req.body.description) {
     return { code: 400, message: 'Bad Request' };
   }
 

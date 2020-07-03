@@ -74,7 +74,8 @@ describe('Post Record tests', () => {
           project: 'test project',
           amount: 60,
           issue: 1,
-          timestamp: '2020-06-12T12:45:00Z'
+          timestamp: '2020-06-12T12:45:00Z',
+          description: 'A part of a new feature'
         },
         method: 'POST',
         headers: {
@@ -89,13 +90,114 @@ describe('Post Record tests', () => {
 
   describe('Validation failures are handled', () => {
 
-    it('If data field is missing, Bad Request message is sent', async () => {
+    it('If project data field is missing, Bad Request message is sent', async () => {
       let invalidReq = {
         body: {
           githubUser: 'tester',
           amount: 60,
           issue: 1,
-          timestamp: '2020-06-12T12:45:00Z'
+          timestamp: '2020-06-12T12:45:00Z',
+          description: 'Test'
+        },
+        method: 'POST',
+        headers: {
+          authorization: process.env.TASKER_APP_ID
+        }
+      };
+
+      await handlePostRecord(invalidReq, res, admin);
+      statusStub.calledWith(400).should.be.ok;
+      sendStub.calledWith('Bad Request').should.be.ok;
+    });
+
+    it('If githubUser data field is missing, Bad Request message is sent', async () => {
+      let invalidReq = {
+        body: {
+          project: 'test project',
+          amount: 60,
+          issue: 1,
+          timestamp: '2020-06-12T12:45:00Z',
+          description: 'Test'
+        },
+        method: 'POST',
+        headers: {
+          authorization: process.env.TASKER_APP_ID
+        }
+      };
+
+      await handlePostRecord(invalidReq, res, admin);
+      statusStub.calledWith(400).should.be.ok;
+      sendStub.calledWith('Bad Request').should.be.ok;
+    });
+
+    it('If amount data field is missing, Bad Request message is sent', async () => {
+      let invalidReq = {
+        body: {
+          githubUser: 'tester',
+          project: 'test project',
+          issue: 1,
+          timestamp: '2020-06-12T12:45:00Z',
+          description: 'Test'
+        },
+        method: 'POST',
+        headers: {
+          authorization: process.env.TASKER_APP_ID
+        }
+      };
+
+      await handlePostRecord(invalidReq, res, admin);
+      statusStub.calledWith(400).should.be.ok;
+      sendStub.calledWith('Bad Request').should.be.ok;
+    });
+
+    it('If issue data field is missing, Bad Request message is sent', async () => {
+      let invalidReq = {
+        body: {
+          githubUser: 'tester',
+          project: 'test project',
+          amount: 60,
+          timestamp: '2020-06-12T12:45:00Z',
+          description: 'Test'
+        },
+        method: 'POST',
+        headers: {
+          authorization: process.env.TASKER_APP_ID
+        }
+      };
+
+      await handlePostRecord(invalidReq, res, admin);
+      statusStub.calledWith(400).should.be.ok;
+      sendStub.calledWith('Bad Request').should.be.ok;
+    });
+
+    it('If timestamp data field is missing, Bad Request message is sent', async () => {
+      let invalidReq = {
+        body: {
+          githubUser: 'tester',
+          project: 'test project',
+          amount: 60,
+          issue: 1,
+          description: 'Test'
+        },
+        method: 'POST',
+        headers: {
+          authorization: process.env.TASKER_APP_ID
+        }
+      };
+
+      await handlePostRecord(invalidReq, res, admin);
+      statusStub.calledWith(400).should.be.ok;
+      sendStub.calledWith('Bad Request').should.be.ok;
+    });
+
+    it('If description data field is missing, Bad Request message is sent', async () => {
+      let invalidReq = {
+        body: {
+          githubUser: 'tester',
+          project: 'test project',
+          amount: 60,
+          issue: 1,
+          timestamp: '2020-06-12T12:45:00Z',
         },
         method: 'POST',
         headers: {
