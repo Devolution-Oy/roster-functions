@@ -21,9 +21,12 @@ module.exports = async(data, context) => {
 
   // TODO: Sort records by date
   const githubUser = data.user;
-  return admin.firestore().collection('records').where('githubUser', '==', githubUser)
-    .get().then(query => {
-
+  return admin.firestore()
+    .collection('records')
+    .where('githubUser', '==', githubUser)
+    .orderBy('timestamp', 'desc')
+    .get()
+    .then(query => {
       var records = [];
       var balance = 0;
       query.forEach(entry => {
