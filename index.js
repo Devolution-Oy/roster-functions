@@ -2,6 +2,7 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const handlePostRecord = require('./postRecord');
 const getBalance = require('./getBalance');
+const handleGetUsers = require('./getUsers');
 
 admin.initializeApp();
 
@@ -23,6 +24,10 @@ exports.addUser = functions.https.onCall((data, context) => {
 exports.deleteUser = functions.auth.user().onDelete(user => {
   const doc = admin.firestore().collection('users').doc(user.uid);
   return doc.delete();
+});
+
+exports.getUsers = functions.https.onCall((data, context) => {
+  return handleGetUsers(context);
 });
 
 async function getUserData(uid) {
