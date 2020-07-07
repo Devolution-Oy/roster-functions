@@ -2,7 +2,9 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const handlePostRecord = require('./postRecord');
 const getBalance = require('./getBalance');
-const handleGetUsers = require('./getUsers');
+const getUsers = require('./getUsers');
+const getProjects = require('./getProjects');
+
 
 admin.initializeApp();
 
@@ -27,7 +29,7 @@ exports.deleteUser = functions.auth.user().onDelete(user => {
 });
 
 exports.getUsers = functions.https.onCall((data, context) => {
-  return handleGetUsers(context);
+  return getUsers(context);
 });
 
 async function getUserData(uid) {
@@ -61,6 +63,10 @@ exports.getUser = functions.https.onCall((data, context) => {
   }
 
   return getUserData(data.uid);
+});
+
+exports.getProjects = functions.https.onCall((data, context) => {
+  return getProjects(data, context);
 });
 
 exports.getUserBalance = functions.https.onCall((data, context) => {
