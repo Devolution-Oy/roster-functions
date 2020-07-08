@@ -1,7 +1,7 @@
 const sinon = require('sinon');
 const chai = require('chai');
 chai.should();
-const handlePostRecord = require('../postRecord');
+const { handlePostRecord } = require('../postRecord');
 const functions = require('firebase-functions');
 
 

@@ -1,5 +1,6 @@
 const crypto = require('crypto-js');
 const functions = require('firebase-functions');
+const admin = require('firebase-admin');
 
 /*
   Validate new record post
@@ -32,7 +33,35 @@ const validatePostBalance = req => {
   return { code: 200, message: 'OK' };
 };
 
-module.exports = async(req, res, admin) => {
+exports.postCustomRecord = (data, context) => {
+  console.log('Received postCustomRecord call');
+  console.log(data);
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated');
+  }
+
+  if ( !data.githubUser 
+    || !data.project
+    || !data.amount
+    || !data.issue
+    || !data.timestamp
+    || !data.description) {
+    console.log('Invalid data:');
+    console.log(data);
+    throw new functions.https.HttpsError('invalid-argument', 'Record data does is not valid');
+  }
+
+  try {
+    const hash = crypto.MD5(data.githubUser + data.project + data.issue);
+    return admin.firestore().collection('records').doc(hash.toString()).set(data);
+  } catch (err) {
+    console.log(err);
+    throw new functions.https.HttpsError('internal', err.message);
+  }
+
+};
+
+exports.handlePostRecord = async(req, res, admin) => {
   const status = validatePostBalance(req);
 
   if (status.code !== 200) {
@@ -42,7 +71,8 @@ module.exports = async(req, res, admin) => {
       let data = req.body;
       const hash = crypto.MD5(data.githubUser + data.project + data.issue);
       admin.firestore().collection('records').doc(hash.toString()).set(data);
-      res.status(200).send('OK (' + hash.toString() + ')');
+      res.status(200).send('OK (' + hash + ')');
+
     } catch (err) {
       console.log(err);
       res.status(500).send(err);

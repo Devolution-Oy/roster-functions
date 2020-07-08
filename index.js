@@ -1,6 +1,6 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const handlePostRecord = require('./postRecord');
+const { handlePostRecord, postCustomRecord } = require('./postRecord');
 const getBalance = require('./getBalance');
 const getUsers = require('./getUsers');
 const getProjects = require('./getProjects');
@@ -75,4 +75,8 @@ exports.getUserBalance = functions.https.onCall((data, context) => {
 
 exports.postRecord = functions.https.onRequest((req, res) => {
   return handlePostRecord(req,res, admin);
+});
+
+exports.postCustomRecord = functions.https.onCall((data, context) => {
+  return postCustomRecord(data, context); 
 });
