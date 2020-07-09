@@ -4,6 +4,7 @@ const { handlePostRecord, postCustomRecord } = require('./postRecord');
 const getBalance = require('./getBalance');
 const getUsers = require('./getUsers');
 const getProjects = require('./getProjects');
+const updateProject = require('./updateProject');
 
 
 admin.initializeApp();
@@ -79,4 +80,8 @@ exports.postRecord = functions.https.onRequest((req, res) => {
 
 exports.postCustomRecord = functions.https.onCall((data, context) => {
   return postCustomRecord(data, context); 
+});
+
+exports.updateProject = functions.https.onCall((data, context) => {
+  return updateProject(data, context);
 });

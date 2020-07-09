@@ -2,9 +2,8 @@ const test = require('firebase-functions-test')();
 const admin = require('firebase-admin');
 const sinon = require('sinon');
 const chai = require('chai');
+const sandbox = sinon.createSandbox();
 
-const myFunctions = require('../index');
-const wrapped = test.wrap(myFunctions.addUser);
 
 const validRecord = {
   uid: 'LoR1xY535HP6gNJNRBokMfhD8343',
@@ -18,27 +17,45 @@ const validRecord = {
   } 
 };
 
-
 describe('User records are stored into firestore',() => {
-  const firestoreStub = sinon.stub();
-  const collectionStub = sinon.stub();
+  let oldFirestore;
+  let myFunctions;
+  before(() => {
+    oldFirestore = admin.firestore;
+    myFunctions = require('../index.js');
+  });
+
+  after(() => {
+    admin.firestore = oldFirestore;
+    test.cleanup();
+    sandbox.restore();
+  });
+
+  const collectionStub = sandbox.stub();
+  const firestoreStub = sandbox.stub();
   const collectionArg = 'users';
-  const docStub = sinon.stub();
-  const setStub = sinon.stub();
+  const docStub = sandbox.stub();
+  const setStub = sandbox.stub();
 
   Object.defineProperty(admin, 'firestore', { get: () => firestoreStub });
   firestoreStub.returns({ collection: collectionStub });
   collectionStub.withArgs(collectionArg).returns({ doc: docStub });
   docStub.withArgs(validRecord.uid).returns({ set: setStub });
-  setStub.withArgs(validRecord.data).returns(true);
+  setStub.withArgs(validRecord.data).returns( new Promise(resolve => {
+    resolve(true);}));
 
   it('Valid user data from authenticated user is writtend to firestore', () => {
-
-    chai.assert.equal(wrapped(validRecord, {
+    const wrapped = test.wrap(myFunctions.addUser);
+    wrapped(validRecord, {
       auth: {
         uid: 'LoR1xY535HP6gNJNRBokMfhD8343',
         token: '123456'
       },
-    }),true);
+    }).then(res => {
+      return chai.assert.equal(res, true);
+    }).catch(err => {
+      console.log(err);
+      throw chai.assert.fail('Shouldn\'t be here');
+    });
   });
 });
