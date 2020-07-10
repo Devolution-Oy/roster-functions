@@ -47,7 +47,9 @@ async function getUserData(uid) {
     displayName: user.data().displayName,
     photo: user.data().photo,
     email: user.data().email,
+    projects: user.data().projects
   };
+  console.log(userData);
   return new Promise((resolve) => {
     resolve(userData);
   });
