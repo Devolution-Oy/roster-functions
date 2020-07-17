@@ -3,69 +3,118 @@ const chai = require('chai');
 chai.should();
 const { handlePostRecord } = require('../postRecord');
 const functions = require('firebase-functions');
+const admin = require('firebase-admin');
 
-
-const sandbox = sinon.createSandbox();
 
 describe('Post Record tests', () => {
   /**
    *  Mock some methods before each call
    */
-  const set = sandbox.stub().callsFake(record => {
-    console.log(`Writing ${record}`);
-  });
-  const doc = (_name) => {
-    return { set };
-  };
-  const collection = (_name) => {
-    return { doc };
-  };
-  const admin = {
-    firestore: () => {
-      return { collection };
-    }
-  };
-
-  sandbox.stub(functions, 'config').returns({
-    tasker_app_id: {
-      value: process.env.TASKER_APP_ID
-    }
-  });
-
-  const sendStub = sandbox.stub().callsFake(message => {
-    console.log(message);
-  });
-
-  var statusResult = {
-    send: sendStub
-  };
-
-  var message = '';
-
-  /**
-   *  Mock REST result object
-   */
-  const statusStub = sandbox.stub().callsFake(code => {
-    console.log('Status called with ' + code);
-    return statusResult;
-  });
-
-  const res = {
-    status: statusStub,
-    message: message,
-  };
-  
+  var sandbox;
+  var stubFirestore;
+  var stubCollection;
+  var stubRecords;
+  var stubProjects;
+  var stubSet;
+  var stubGet;
+  var stubProjectData;
+  var sendStub;
+  var statusStub;
+  var res;
+  var statusResult;
   beforeEach(() => {
-    set.resetHistory();
-    statusStub.resetHistory();
-    sendStub.resetHistory();
+    sandbox = sinon.createSandbox();
+    stubFirestore = sandbox.stub();
+    stubCollection = sandbox.stub();
+    stubRecords = sandbox.stub();
+    stubProjects = sandbox.stub();
+    stubSet = sandbox.stub();
+    stubGet = sandbox.stub();
+    stubProjectData = sandbox.stub();
+    sendStub = sandbox.stub();
+    statusStub = sandbox.stub();
+
+    sandbox.stub(admin, 'firestore').get(() => stubFirestore);
+    stubFirestore.returns({ collection: stubCollection});
+    stubCollection.withArgs('records').returns({ doc: stubRecords });
+    stubCollection.withArgs('projects').returns({ doc: stubProjects});
+    stubRecords.returns({
+      set: stubSet,
+    });
+    stubProjects.withArgs('test project').returns({
+      set: stubSet,
+      get: stubGet
+    });
+    stubSet.callsFake(set => {
+      console.log(`Writing ${set}`);
+    });
+
+    stubGet.callsFake(() => {
+      return new Promise(resolve => {
+        resolve({ data: stubProjectData });
+      });
+    });
+    stubProjectData.returns({
+      budget: 1000,
+      name: 'test project',
+      contributors: ['tester'],
+      github: true
+    });
+
+    sandbox.stub(functions, 'config').returns({
+      tasker_app_id: {
+        value: process.env.TASKER_APP_ID
+      }
+    });
+
+    /**
+     *  Mock REST result object
+     */
+    sendStub = sandbox.stub().callsFake(message => {
+      console.log(message);
+    });
+
+    statusResult = {
+      send: sendStub
+    };
+
+    statusStub = sandbox.stub().callsFake(code => {
+      console.log('Status called with ' + code);
+      return statusResult;
+    });
+
+    res = {
+      status: statusStub,
+      message: '',
+    };
   });
 
-  after(() => {
+  afterEach(() => {
     sandbox.restore();
   });
 
   describe('Post record requests are handled', () => {
+
+    it('Each record reduce project\'s budget', async () => {
+      let validReq = {
+        body: {
+          githubUser: 'tester',
+          project: 'test project',
+          amount: 60,
+          issue: 1,
+          timestamp: '2020-06-12T12:45:00Z',
+          description: 'A part of a new feature'
+        },
+        method: 'POST',
+        headers: {
+          authorization: process.env.TASKER_APP_ID
+        }
+      };
+
+      await handlePostRecord(validReq, res);
+      statusStub.calledWith(200).should.be.ok;
+
+    });
 
     it('Validate record method gets called for request', async () => {
       let validReq = {
@@ -83,8 +132,9 @@ describe('Post Record tests', () => {
         }
       };
 
-      await handlePostRecord(validReq, res, admin);
+      await handlePostRecord(validReq, res);
       statusStub.calledWith(200).should.be.ok;
+      stubSet.calledWith({budget: 940}, {merge: true}).should.be.ok;
     });
   });
 
@@ -105,7 +155,7 @@ describe('Post Record tests', () => {
         }
       };
 
-      await handlePostRecord(invalidReq, res, admin);
+      await handlePostRecord(invalidReq, res);
       statusStub.calledWith(400).should.be.ok;
       sendStub.calledWith('Bad Request').should.be.ok;
     });
@@ -125,7 +175,7 @@ describe('Post Record tests', () => {
         }
       };
 
-      await handlePostRecord(invalidReq, res, admin);
+      await handlePostRecord(invalidReq, res);
       statusStub.calledWith(400).should.be.ok;
       sendStub.calledWith('Bad Request').should.be.ok;
     });
@@ -145,7 +195,7 @@ describe('Post Record tests', () => {
         }
       };
 
-      await handlePostRecord(invalidReq, res, admin);
+      await handlePostRecord(invalidReq, res);
       statusStub.calledWith(400).should.be.ok;
       sendStub.calledWith('Bad Request').should.be.ok;
     });
@@ -165,7 +215,7 @@ describe('Post Record tests', () => {
         }
       };
 
-      await handlePostRecord(invalidReq, res, admin);
+      await handlePostRecord(invalidReq, res);
       statusStub.calledWith(400).should.be.ok;
       sendStub.calledWith('Bad Request').should.be.ok;
     });
@@ -185,7 +235,7 @@ describe('Post Record tests', () => {
         }
       };
 
-      await handlePostRecord(invalidReq, res, admin);
+      await handlePostRecord(invalidReq, res);
       statusStub.calledWith(400).should.be.ok;
       sendStub.calledWith('Bad Request').should.be.ok;
     });
@@ -205,7 +255,7 @@ describe('Post Record tests', () => {
         }
       };
 
-      await handlePostRecord(invalidReq, res, admin);
+      await handlePostRecord(invalidReq, res);
       statusStub.calledWith(400).should.be.ok;
       sendStub.calledWith('Bad Request').should.be.ok;
     });
@@ -224,7 +274,7 @@ describe('Post Record tests', () => {
           authorization: process.env.TASKER_APP_ID
         }
       };
-      await handlePostRecord(invalidReq, res, admin);
+      await handlePostRecord(invalidReq, res);
       statusStub.calledWith(400).should.be.ok;
       sendStub.calledWith('Invalid method').should.be.ok;
     });
@@ -242,10 +292,9 @@ describe('Post Record tests', () => {
         headers: {
         }
       };
-      await handlePostRecord(invalidReq, res, admin);
+      await handlePostRecord(invalidReq, res);
       statusStub.calledWith(403).should.be.ok;
       sendStub.calledWith('Unauthorized').should.be.ok;
     });
-
   });
 });

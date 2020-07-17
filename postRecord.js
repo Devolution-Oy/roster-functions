@@ -2,6 +2,20 @@ const crypto = require('crypto-js');
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 
+const updateBudget = (project, amount) => {
+
+  return admin.firestore().collection('projects').doc(project).get().then(res => {
+    var budget = 0;
+    if (res.data()) {
+      budget = res.data().budget;
+    }
+
+    const newBudget = budget - amount;
+    return admin.firestore().collection('projects').doc(project)
+      .set({budget: newBudget}, {merge: true});
+  });
+};
+
 /*
   Validate new record post
 */
@@ -33,9 +47,7 @@ const validatePostBalance = req => {
   return { code: 200, message: 'OK' };
 };
 
-exports.postCustomRecord = (data, context) => {
-  console.log('Received postCustomRecord call');
-  console.log(data);
+exports.postCustomRecord = async (data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'Unauthenticated');
   }
@@ -48,10 +60,12 @@ exports.postCustomRecord = (data, context) => {
     || !data.description) {
     console.log('Invalid data:');
     console.log(data);
-    throw new functions.https.HttpsError('invalid-argument', 'Record data does is not valid');
+    throw new functions.https.HttpsError('invalid-argument', 'Record data is not valid');
   }
 
   try {
+    // TODO: Add a new project if project doesn't exist yet
+    await updateBudget(data.project, data.amount);
     const hash = crypto.MD5(data.githubUser + data.project + data.issue);
     return admin.firestore().collection('records').doc(hash.toString()).set(data);
   } catch (err) {
@@ -61,7 +75,7 @@ exports.postCustomRecord = (data, context) => {
 
 };
 
-exports.handlePostRecord = async(req, res, admin) => {
+exports.handlePostRecord = async(req, res) => {
   const status = validatePostBalance(req);
 
   if (status.code !== 200) {
@@ -69,6 +83,7 @@ exports.handlePostRecord = async(req, res, admin) => {
   } else {
     try {
       let data = req.body;
+      await updateBudget(data.project, data.amount);
       const hash = crypto.MD5(data.githubUser + data.project + data.issue);
       admin.firestore().collection('records').doc(hash.toString()).set(data);
       res.status(200).send('OK (' + hash + ')');

@@ -69,7 +69,7 @@ exports.getUserBalance = functions.https.onCall((data, context) => {
 });
 
 exports.postRecord = functions.https.onRequest((req, res) => {
-  return handlePostRecord(req,res, admin);
+  return handlePostRecord(req,res);
 });
 
 exports.postCustomRecord = functions.https.onCall((data, context) => {
