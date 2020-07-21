@@ -5,6 +5,7 @@ const addUser = require('./addUser');
 const getBalance = require('./getBalance');
 const getUsers = require('./getUsers');
 const getProjects = require('./getProjects');
+const getProject = require('./getProject');
 const getRecords = require('./getRecords');
 const updateProject = require('./updateProject');
 
@@ -82,4 +83,8 @@ exports.updateProject = functions.https.onCall((data, context) => {
 
 exports.getRecords = functions.https.onCall((data, context) => {
   return getRecords(data, context);
+});
+
+exports.getProject = functions.https.onRequest((req, res) => {
+  return getProject(req, res);
 });

@@ -85,7 +85,7 @@ exports.handlePostRecord = async(req, res) => {
       let data = req.body;
       await updateBudget(data.project, data.amount);
       const hash = crypto.MD5(data.githubUser + data.project + data.issue);
-      admin.firestore().collection('records').doc(hash.toString()).set(data);
+      await admin.firestore().collection('records').doc(hash.toString()).set(data);
       res.status(200).send('OK (' + hash + ')');
 
     } catch (err) {
