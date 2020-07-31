@@ -40,6 +40,7 @@ const validatePostBalance = req => {
     || !req.body.amount
     || !req.body.issue
     || !req.body.timestamp
+    || !req.body.action
     || !req.body.description) {
     return { code: 400, message: 'Bad Request' };
   }
@@ -56,6 +57,7 @@ exports.postCustomRecord = async (data, context) => {
     || !data.project
     || !data.amount
     || !data.issue
+    || !data.action
     || !data.timestamp
     || !data.description) {
     console.log('Invalid data:');
@@ -66,7 +68,7 @@ exports.postCustomRecord = async (data, context) => {
   try {
     // TODO: Add a new project if project doesn't exist yet
     await updateBudget(data.project, data.amount);
-    const hash = crypto.MD5(data.githubUser + data.project + data.issue);
+    const hash = crypto.MD5(data.githubUser + data.project + data.issue + data.action);
     return admin.firestore().collection('records').doc(hash.toString()).set(data);
   } catch (err) {
     console.log(err);
@@ -84,7 +86,7 @@ exports.handlePostRecord = async(req, res) => {
     try {
       let data = req.body;
       await updateBudget(data.project, data.amount);
-      const hash = crypto.MD5(data.githubUser + data.project + data.issue);
+      const hash = crypto.MD5(data.githubUser + data.project + data.issue + data.action);
       await admin.firestore().collection('records').doc(hash.toString()).set(data);
       res.status(200).send('OK (' + hash + ')');
 

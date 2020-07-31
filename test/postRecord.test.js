@@ -103,6 +103,7 @@ describe('Post Record tests', () => {
           amount: 60,
           issue: 1,
           timestamp: '2020-06-12T12:45:00Z',
+          action: 'closed',
           description: 'A part of a new feature'
         },
         method: 'POST',
@@ -123,6 +124,7 @@ describe('Post Record tests', () => {
           project: 'test project',
           amount: 60,
           issue: 1,
+          action: 'closed',
           timestamp: '2020-06-12T12:45:00Z',
           description: 'A part of a new feature'
         },
@@ -146,8 +148,30 @@ describe('Post Record tests', () => {
           githubUser: 'tester',
           amount: 60,
           issue: 1,
+          action: 'closed',
           timestamp: '2020-06-12T12:45:00Z',
           description: 'Test'
+        },
+        method: 'POST',
+        headers: {
+          authorization: process.env.TASKER_APP_ID
+        }
+      };
+
+      await handlePostRecord(invalidReq, res);
+      statusStub.calledWith(400).should.be.ok;
+      sendStub.calledWith('Bad Request').should.be.ok;
+    });
+
+    it('If action data field is missing, Bad Request message is sent', async () => {
+      let invalidReq = {
+        body: {
+          githubUser: 'tester',
+          project: 'test project',
+          amount: 60,
+          issue: 1,
+          timestamp: '2020-06-12T12:45:00Z',
+          description: 'A part of a new feature'
         },
         method: 'POST',
         headers: {
@@ -166,6 +190,7 @@ describe('Post Record tests', () => {
           project: 'test project',
           amount: 60,
           issue: 1,
+          action: 'closed',
           timestamp: '2020-06-12T12:45:00Z',
           description: 'Test'
         },
@@ -186,6 +211,7 @@ describe('Post Record tests', () => {
           githubUser: 'tester',
           project: 'test project',
           issue: 1,
+          action: 'closed',
           timestamp: '2020-06-12T12:45:00Z',
           description: 'Test'
         },
@@ -206,6 +232,7 @@ describe('Post Record tests', () => {
           githubUser: 'tester',
           project: 'test project',
           amount: 60,
+          action: 'closed',
           timestamp: '2020-06-12T12:45:00Z',
           description: 'Test'
         },
@@ -226,6 +253,7 @@ describe('Post Record tests', () => {
           githubUser: 'tester',
           project: 'test project',
           amount: 60,
+          action: 'closed',
           issue: 1,
           description: 'Test'
         },
@@ -246,6 +274,7 @@ describe('Post Record tests', () => {
           githubUser: 'tester',
           project: 'test project',
           amount: 60,
+          action: 'closed',
           issue: 1,
           timestamp: '2020-06-12T12:45:00Z',
         },
@@ -266,6 +295,7 @@ describe('Post Record tests', () => {
           githubUser: 'tester',
           project: 'test project',
           amount: 60,
+          action: 'closed',
           issue: 1,
           timestamp: '2020-06-12T12:45:00Z'
         },
@@ -285,6 +315,7 @@ describe('Post Record tests', () => {
           githubUser: 'tester',
           project: 'test project',
           amount: 60,
+          action: 'closed',
           issue: 1,
           timestamp: '2020-06-12T12:45:00Z'
         },
