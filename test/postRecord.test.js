@@ -37,11 +37,11 @@ describe('Post Record tests', () => {
     sandbox.stub(admin, 'firestore').get(() => stubFirestore);
     stubFirestore.returns({ collection: stubCollection});
     stubCollection.withArgs('records').returns({ doc: stubRecords });
-    stubCollection.withArgs('projects').returns({ doc: stubProjects});
+    stubCollection.withArgs('projects').returns({ where: stubProjects });
     stubRecords.returns({
       set: stubSet,
     });
-    stubProjects.withArgs('test project').returns({
+    stubProjects.withArgs('repositories', 'array-contains', 'test project').returns({
       set: stubSet,
       get: stubGet
     });

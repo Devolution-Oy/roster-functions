@@ -4,14 +4,19 @@ const admin = require('firebase-admin');
 
 const updateBudget = (project, amount) => {
 
-  return admin.firestore().collection('projects').doc(project).get().then(res => {
+  return admin.firestore()
+    .collection('projects')
+    .where('repositories', 'array-contains', project)
+    .get().then(res => {
     var budget = 0;
     if (res.data()) {
       budget = res.data().budget;
     }
 
     const newBudget = budget - amount;
-    return admin.firestore().collection('projects').doc(project)
+    return admin.firestore()
+      .collection('projects')
+      .where('repositories', 'array-contains', project)
       .set({budget: newBudget}, {merge: true});
   });
 };
